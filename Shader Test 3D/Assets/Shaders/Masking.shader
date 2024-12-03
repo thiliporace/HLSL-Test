@@ -7,7 +7,7 @@ Shader "Introduction/Masking"
         _RevealValue ("Reveal Value", float) = 0
         _Feather ("Feather", float) = 0
 
-        _ErodeColor 
+        _ErodeColor("Erode Color",color) = (1,1,1,1)
 
         [Enum(UnityEngine.Rendering.BlendMode)]
         _SourceFactor("Source Factor", Float) = 5
@@ -67,6 +67,8 @@ Shader "Introduction/Masking"
 
             float _RevealValue, _Feather;
 
+            float4 _ErodeColor;
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -88,11 +90,15 @@ Shader "Introduction/Masking"
                 //Binariza suavemente entre dois inputs
                 //float revealAmount = smoothstep(mask.r - _Feather, mask.r + _Feather, _RevealValue);
 
+                //Efeito de erosao
                 float revealAmountTop = step(mask.r, _RevealValue + _Feather);
                 float revealAmountBottom = step(mask.r, _RevealValue - _Feather);
-                float revealDifference = revealAmountTop - revealAmountBottom;
 
-                return fixed4(col.rgb, col.a * revealAmount);
+                //Pega parte do efeito de erosao
+                float revealDifference = revealAmountTop - revealAmountBottom;
+                float3 finalCol = lerp(col.rgb, mask.rgb, revealDifference);
+
+                return fixed4(finalCol, col.a * revealAmountTop);
             }
             ENDCG
         }
